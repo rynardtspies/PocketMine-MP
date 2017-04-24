@@ -41,8 +41,6 @@ abstract class BaseLevelProvider implements LevelProvider{
 	protected $path;
 	/** @var CompoundTag */
 	protected $levelData;
-	/** @var bool */
-	protected $asyncChunkRequest = false;
 
 	public function __construct(Level $level, string $path){
 		$this->level = $level;
@@ -66,7 +64,6 @@ abstract class BaseLevelProvider implements LevelProvider{
 		if(!isset($this->levelData->generatorOptions)){
 			$this->levelData->generatorOptions = new StringTag("generatorOptions", "");
 		}
-		$this->asyncChunkRequest = (bool) $this->level->getServer()->getProperty("chunk-sending.async-chunk-request", false);
 	}
 
 	public function getPath() : string{
@@ -137,13 +134,6 @@ abstract class BaseLevelProvider implements LevelProvider{
 			throw new ChunkException("Invalid Chunk sent");
 		}
 
-		if($this->asyncChunkRequest){
-			return new ChunkRequestTask($this->level, $chunk);
-		}
-
-		//non-async, call the callback directly with serialized data
-		$this->getLevel()->chunkRequestCallback($x, $z, $chunk->networkSerialize());
-
-		return null;
+		return new ChunkRequestTask($this->level, $chunk);
 	}
 }
